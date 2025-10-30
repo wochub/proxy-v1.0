@@ -42,8 +42,7 @@ def rewrite_content(content: bytes, base_url: str, content_type: str) -> bytes:
                 if any(url.startswith(p) for p in ('data:', 'mailto:', 'tel:', '#', 'javascript:', 'blob:')):
                     return match.group(0)
                 full_url = urllib.parse.urljoin(base_url, url.strip('\'"'))
-                # FIX: Use double quotes for safe= to avoid escaping issues
-                proxied = f"/proxy/{urllib.parse.quote(full_url, safe=\":/?#[]@!$&'()*+,;=\")}"
+                proxied = f"/proxy/{urllib.parse.quote(full_url, safe=':/?#[]@!$&\\'()*+,;=')}"
                 return f'{attr}="{proxied}"'
 
             text = URL_RE.sub(repl, text)
@@ -51,7 +50,7 @@ def rewrite_content(content: bytes, base_url: str, content_type: str) -> bytes:
             if 'css' in content_type.lower():
                 text = re.sub(
                     r'url\(["\']?([^"\')]+)["\']?\)',
-                    lambda m: f'url("/proxy/{urllib.parse.quote(urllib.parse.urljoin(base_url, m.group(1)), safe=\":/?#[]@!$&\\'()*+,;=\")}")',
+                    lambda m: f'url("/proxy/{urllib.parse.quote(urllib.parse.urljoin(base_url, m.group(1)), safe=":/?#[]@!$&\\'()*+,;=")}")',
                     text
                 )
 
@@ -87,33 +86,21 @@ def proxy(url):
         print(f"Proxy error: {e}")
         return handle_error(f"Failed to reach site: {e}")
 
-    # DECOMPRESS
     content = decompress_content(resp.content)
     content_type = resp.headers.get('Content-Type', 'text/html')
-
-    # REWRITE URLs
     content = rewrite_content(content, target, content_type)
 
-    # BUILD RESPONSE
     response = Response(content, status=resp.status_code)
-
-    # COPY HEADERS BUT **REMOVE COMPRESSION**
     excluded = ['content-encoding', 'transfer-encoding', 'content-length', 'connection', 'server', 'date']
     for k, v in resp.headers.items():
         if k.lower() not in excluded:
             response.headers[k] = v
 
-    # CRITICAL: Remove Content-Encoding (we already decompressed!)
     response.headers.pop('Content-Encoding', None)
     response.headers.pop('Transfer-Encoding', None)
-
-    # SET CORRECT LENGTH
     response.headers['Content-Length'] = str(len(content))
+    response.headers['Content-Type'] = content_type.split(';')[0]
 
-    # SET CONTENT-TYPE
-    response.headers['Content-Type'] = content_type.split(';')[0]  # Strip charset
-
-    # FORWARD COOKIES
     for cookie in resp.cookies:
         response.set_cookie(cookie.name, cookie.value, path=cookie.path or '/', secure=cookie.secure)
 
