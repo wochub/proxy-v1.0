@@ -10,4 +10,4 @@ A web browser built inside a webpage using Flask + iframe + proxy.
 
 ## Deploy
 - Push to GitHub
-- Connect to [Render.com](https://render.com) as **Python Web Service**
+- Connect to [Render.com](https://render.com) as **Python Web Service**# proxy-v1.0
