@@ -30,7 +30,9 @@ def decompress_content(content: bytes) -> bytes:
             pass
     return content
 
-URL_RE = re.compile(r'(?i)(href|src|action|data-src|poster|content|data-url|background-image|style)=["\']?([^"\'> ;}]+)["\'> ;}]?')
+URL_RE = re.compile(
+    r'(?i)(href|src|action|data-src|poster|content|data-url|background-image|style)=["\']?([^"\'> ;}]+)["\'> ;}]?'
+)
 
 def rewrite_content(content: bytes, base_url: str, content_type: str) -> bytes:
     if any(ct in content_type.lower() for ct in ['text/html', 'javascript', 'json', 'css']):
@@ -42,21 +44,33 @@ def rewrite_content(content: bytes, base_url: str, content_type: str) -> bytes:
                 if any(url.startswith(p) for p in ('data:', 'mailto:', 'tel:', '#', 'javascript:', 'blob:')):
                     return match.group(0)
                 full_url = urllib.parse.urljoin(base_url, url.strip('\'"'))
-                proxied = f"/proxy/{urllib.parse.quote(full_url, safe=':/?#[]@!$&\\'()*+,;=')}"
+                safe_chars = ":/?#[]@!$&'()*+,;="
+                proxied = "/proxy/" + urllib.parse.quote(full_url, safe=safe_chars)
                 return f'{attr}="{proxied}"'
 
             text = URL_RE.sub(repl, text)
 
             if 'css' in content_type.lower():
-                text = re.sub(
-                    r'url\(["\']?([^"\')]+)["\']?\)',
-                    lambda m: f'url("/proxy/{urllib.parse.quote(urllib.parse.urljoin(base_url, m.group(1)), safe=":/?#[]@!$&\\'()*+,;=")}")',
-                    text
+                css_pattern = re.compile(
+                    r'url\(\s*([\'"])(.+?)\1\s*\)|url\(\s*([^\s\'")][^)]*)\s*\)'
                 )
 
+                def css_rewrite(m):
+                    url = m.group(2) or m.group(3)
+                    if not url:
+                        return m.group(0)
+                    joined = urllib.parse.urljoin(base_url, url)
+                    safe_chars = ":/?#[]@!$&'()*+,;="
+                    quoted = urllib.parse.quote(joined, safe=safe_chars)
+                    return f"url('/proxy/{quoted}')"
+
+                text = css_pattern.sub(css_rewrite, text)
+
             return text.encode('utf-8')
+
         except Exception as e:
             print(f"Rewrite error: {e}")
+
     return content
 
 @app.route("/proxy/<path:url>", methods=['GET', 'POST', 'PUT', 'DELETE'])
