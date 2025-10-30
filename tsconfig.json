@@ -1,15 +1,19 @@
 {
-  "compilerOptions": {
-    "target": "ES2020",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "esModuleInterop": true,
-    "strict": true,
-    "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
-    "outDir": "dist",
-    "rootDir": "."
+  "name": "browser-in-browser",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "render-build": "yarn build"
   },
-  "include": ["src", "index.ts"]
+  "dependencies": {
+    "express": "^4.18.2",
+    "puppeteer": "^23.3.1"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.2",
+    "@types/node": "^22.5.0"
+  }
 }
- 
