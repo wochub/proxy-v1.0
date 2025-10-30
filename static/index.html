@@ -1,0 +1,69 @@
+<!-- static/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser in Browser</title>
+    <style>
+        body { margin: 0; font-family: Arial, sans-serif; }
+        #toolbar { display: flex; padding: 10px; background: #f0f0f0; }
+        button { margin-right: 5px; }
+        #url-bar { flex-grow: 1; margin: 0 5px; padding: 5px; }
+        #iframe { width: 100%; height: calc(100vh - 50px); border: none; }
+    </style>
+</head>
+<body>
+    <div id="toolbar">
+        <button onclick="goBack()">Back</button>
+        <button onclick="goForward()">Forward</button>
+        <button onclick="reload()">Reload</button>
+        <input id="url-bar" type="text" placeholder="Enter URL" onkeydown="if(event.key==='Enter') go()">
+        <button onclick="go()">Go</button>
+    </div>
+    <iframe id="iframe" src="/proxy/https://www.example.com"></iframe>
+
+    <script>
+        const iframe = document.getElementById('iframe');
+        const urlBar = document.getElementById('url-bar');
+
+        // Update URL bar on load
+        iframe.onload = () => {
+            try {
+                let currentUrl = iframe.contentWindow.location.href;
+                if (currentUrl.startsWith(window.location.origin + '/proxy/')) {
+                    currentUrl = decodeURIComponent(currentUrl.split('/proxy/')[1]);
+                }
+                urlBar.value = currentUrl;
+            } catch (e) { /* Cross-origin */ }
+        };
+
+        function go() {
+            const url = urlBar.value.trim();
+            if (!url) return;
+            const proxied = `/proxy/${encodeURIComponent(url.startsWith('http') ? url : 'https://' + url)}`;
+            iframe.src = proxied;
+            history.pushState({ url: proxied }, '', '');
+        }
+
+        function reload() {
+            iframe.src = iframe.src;
+        }
+
+        function goBack() {
+            history.back();
+            setTimeout(() => { iframe.src = history.state ? history.state.url : iframe.src; }, 100);
+        }
+
+        function goForward() {
+            history.forward();
+            setTimeout(() => { iframe.src = history.state ? history.state.url : iframe.src; }, 100);
+        }
+
+        // Handle browser back/forward
+        window.onpopstate = (e) => {
+            if (e.state && e.state.url) iframe.src = e.state.url;
+        };
+    </script>
+</body>
+</html>

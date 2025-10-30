@@ -1,5 +1,13 @@
-# Python Starter
+# Browser in a Browser
 
-Quickly get started with [Python](https://www.python.org/) using this starter! 
+A web browser built inside a webpage using Flask + iframe + proxy.
 
-- If you want to upgrade Python, you can change the image in the [Dockerfile](./.devcontainer/Dockerfile).
+## Features
+- Back/Forward/Reload/Go
+- URL bar with real navigation
+- Proxies all requests through Flask
+- Handles gzip, URL rewriting, errors
+
+## Deploy
+- Push to GitHub
+- Connect to [Render.com](https://render.com) as **Python Web Service**
