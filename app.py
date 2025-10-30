@@ -42,15 +42,18 @@ def rewrite_content(content: bytes, base_url: str, content_type: str) -> bytes:
                 if any(url.startswith(p) for p in ('data:', 'mailto:', 'tel:', '#', 'javascript:', 'blob:')):
                     return match.group(0)
                 full_url = urllib.parse.urljoin(base_url, url.strip('\'"'))
-                proxied = f"/proxy/{urllib.parse.quote(full_url, safe=':/?#[]@!$&\\'()*+,;=')}"
+                # FIX: Use double quotes for safe= to avoid escaping issues
+                proxied = f"/proxy/{urllib.parse.quote(full_url, safe=\":/?#[]@!$&'()*+,;=\")}"
                 return f'{attr}="{proxied}"'
 
             text = URL_RE.sub(repl, text)
 
             if 'css' in content_type.lower():
-                text = re.sub(r'url\(["\']?([^"\')]+)["\']?\)', 
-                             lambda m: f'url("/proxy/{urllib.parse.quote(urllib.parse.urljoin(base_url, m.group(1)))}")', 
-                             text)
+                text = re.sub(
+                    r'url\(["\']?([^"\')]+)["\']?\)',
+                    lambda m: f'url("/proxy/{urllib.parse.quote(urllib.parse.urljoin(base_url, m.group(1)), safe=\":/?#[]@!$&\\'()*+,;=\")}")',
+                    text
+                )
 
             return text.encode('utf-8')
         except Exception as e:
