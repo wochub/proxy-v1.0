@@ -1,12 +1,15 @@
 {
   "compilerOptions": {
-    "outDir": "dist",
-    "rootDir": ".",
     "target": "ES2020",
-    "module": "ES2020",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
     "esModuleInterop": true,
     "strict": true,
-    "forceConsistentCasingInFileNames": true
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "dist",
+    "rootDir": "."
   },
-  "include": ["src/**/*.ts", "index.ts"]
+  "include": ["src", "index.ts"]
 }
+ 
