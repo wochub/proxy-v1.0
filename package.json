@@ -3,10 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "prebuild": "yarn install",
     "build": "tsc",
     "start": "node dist/index.js",
-    "render-build": "yarn install && yarn build",
+    "render-build": "yarn build",
     "postinstall": "npx puppeteer browsers install chrome",
     "dev": "tsc --watch"
   },

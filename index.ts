@@ -4,10 +4,9 @@ import puppeteer from "puppeteer";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve the public folder
+// Serve the frontend
 app.use(express.static("public"));
 
-// Browse endpoint
 app.get("/browse", async (req, res) => {
   let { url } = req.query as { url?: string };
 
@@ -15,7 +14,7 @@ app.get("/browse", async (req, res) => {
     return res.status(400).send("Missing 'url' query parameter");
   }
 
-  // Add https:// if missing
+  // Normalize URL
   if (!/^https?:\/\//i.test(url)) {
     url = "https://" + url;
   }
@@ -29,19 +28,17 @@ app.get("/browse", async (req, res) => {
         "--disable-dev-shm-usage",
         "--disable-gpu",
         "--no-zygote",
-        "--single-process",
+        "--single-process"
       ],
-      executablePath:
-        process.env.PUPPETEER_EXECUTABLE_PATH ||
-        "/opt/render/.cache/puppeteer/chrome/linux-142.0.7444.59/chrome",
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined
     });
 
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
 
     const content = await page.content();
-
     await browser.close();
+
     res.send(content);
   } catch (err) {
     console.error("Puppeteer error:", err);
