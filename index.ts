@@ -4,11 +4,13 @@ import puppeteer from "puppeteer";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Serve static files from 'public'
 app.use(express.static("public"));
 
+// Browse endpoint
 app.get("/browse", async (req, res) => {
   let { url } = req.query as { url?: string };
-  if (!url) return res.status(400).send("Missing 'url' parameter");
+  if (!url) return res.status(400).send("Missing 'url' query parameter");
 
   if (!/^https?:\/\//i.test(url)) url = "https://" + url;
 
@@ -20,10 +22,7 @@ app.get("/browse", async (req, res) => {
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
         "--disable-gpu",
-        "--no-zygote",
-        "--single-process",
       ],
-      // Don't set executablePath manually — let Puppeteer find its installed Chrome
     });
 
     const page = await browser.newPage();
@@ -39,5 +38,5 @@ app.get("/browse", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`✅ Server running at http://localhost:${PORT}`);
 });
