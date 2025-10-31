@@ -1,16 +1,19 @@
 import puppeteer from "puppeteer";
 
-export default async function renderPage(url: string): Promise<string> {
-  const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
+export async function getPageHTML(url: string): Promise<string> {
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
 
-  try {
-    await page.goto(url, { waitUntil: "networkidle2" });
-    const content = await page.content();
-    return content;
-  } catch (err) {
-    return `<h1>Error loading page</h1><p>${err}</p>`;
-  } finally {
-    await browser.close();
-  }
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    executablePath:
+      process.env.PUPPETEER_EXECUTABLE_PATH || puppeteer.executablePath(),
+  });
+
+  const page = await browser.newPage();
+  await page.goto(url, { waitUntil: "networkidle2" });
+  const html = await page.content();
+
+  await browser.close();
+  return html;
 }
