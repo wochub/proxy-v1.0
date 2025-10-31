@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "prebuild": "yarn install",
     "build": "tsc",
-    "render-build": "yarn build",
     "start": "node dist/index.js",
+    "render-build": "yarn install && yarn build",
     "dev": "tsc --watch"
   },
   "dependencies": {
