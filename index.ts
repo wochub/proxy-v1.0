@@ -23,8 +23,7 @@ app.get("/browse", async (req, res) => {
         "--no-zygote",
         "--single-process",
       ],
-      executablePath:
-        "/opt/render/.cache/puppeteer/chrome/linux-127.0.6533.88/chrome-linux64/chrome",
+      // Don't set executablePath manually — let Puppeteer find its installed Chrome
     });
 
     const page = await browser.newPage();
