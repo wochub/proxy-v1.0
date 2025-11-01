@@ -1,44 +1,36 @@
 import express from "express";
-import puppeteer from "puppeteer-core";
-import path from "path";
+import fetch from "node-fetch"; // install with `npm install node-fetch@2` for Node 22
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve everything in /public
-app.use(express.static(path.join(process.cwd(), "public")));
+// Serve static files
+app.use(express.static("public"));
 
+// Fetch page HTML via Browserless HTTP
 app.get("/browse", async (req, res) => {
+  let { url } = req.query as { url?: string };
+  if (!url) return res.status(400).send("Missing 'url' query parameter");
+
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+
   try {
-    let { url } = req.query as { url?: string };
-    if (!url) return res.status(400).send("Missing 'url' query parameter");
+    const response = await fetch(
+      `https://chrome.browserless.io/content?token=${
+        process.env.BROWSERLESS_API_KEY
+      }&url=${encodeURIComponent(url)}`
+    );
 
-    if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+    if (!response.ok) {
+      return res
+        .status(response.status)
+        .send("Error fetching page from Browserless");
+    }
 
-    // Connect to Browserless.io instead of local Chrome
-    const browser = await puppeteer.connect({
-      browserWSEndpoint: `wss://chrome.browserless.io?token=2TLCfXWWZ7oZbu027022e60d48f141b0a0e3996a1633f45d0`,
-    });
-
-    const page = await browser.newPage();
-
-    // Handle navigation timeout gracefully
-    await page
-      .goto(url, { waitUntil: "domcontentloaded", timeout: 20000 })
-      .catch(() => {
-        res.status(504).send("Page took too long to load.");
-        return;
-      });
-
-    // If response already sent (timeout), skip the rest
-    if (res.headersSent) return;
-
-    const content = await page.content();
-    await browser.close();
-
-    res.status(200).send(content);
+    const html = await response.text();
+    res.send(html);
   } catch (err) {
-    console.error("Puppeteer error:", err);
+    console.error("Browserless fetch error:", err);
     res.status(500).send("Server error: " + (err as Error).message);
   }
 });
