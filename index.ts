@@ -4,39 +4,33 @@ import puppeteer from "puppeteer";
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files from 'public'
 app.use(express.static("public"));
 
-// Browse endpoint
 app.get("/browse", async (req, res) => {
-  let { url } = req.query as { url?: string };
-  if (!url) return res.status(400).send("Missing 'url' query parameter");
-
-  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+  const { url } = req.query;
+  if (!url || typeof url !== "string") {
+    return res.status(400).send("Missing URL parameter");
+  }
 
   try {
     const browser = await puppeteer.launch({
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
       headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-      ],
     });
 
     const page = await browser.newPage();
-    await page.goto(url, { waitUntil: "networkidle2", timeout: 30000 });
+    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 30000 });
+
     const content = await page.content();
     await browser.close();
 
     res.send(content);
-  } catch (err) {
-    console.error("Puppeteer error:", err);
-    res.status(500).send("Server error: " + (err as Error).message);
+  } catch (error) {
+    console.error("Puppeteer error:", error);
+    res.status(500).send("Server error: " + (error as Error).message);
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`✅ Server running at http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
