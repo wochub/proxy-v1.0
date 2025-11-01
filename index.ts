@@ -1,13 +1,10 @@
 import express from "express";
-import fetch from "node-fetch"; // install with `npm install node-fetch@2` for Node 22
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Serve static files
 app.use(express.static("public"));
 
-// Fetch page HTML via Browserless HTTP
 app.get("/browse", async (req, res) => {
   let { url } = req.query as { url?: string };
   if (!url) return res.status(400).send("Missing 'url' query parameter");
