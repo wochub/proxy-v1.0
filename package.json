@@ -5,16 +5,17 @@
   "scripts": {
     "build": "tsc",
     "start": "node dist/index.js",
-    "render-build": "npm install && npm run build",
-    "dev": "tsc --watch"
+    "dev": "ts-node index.ts",
+    "render-build": "npm run build"
   },
   "dependencies": {
     "express": "^4.21.2",
-    "puppeteer-core": "^24.3.0"
+    "puppeteer-core": "^24.2.0"
   },
   "devDependencies": {
-    "@types/express": "^4.17.25",
-    "@types/node": "^24.9.2",
-    "typescript": "^5.9.3"
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.9.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.3"
   }
 }
