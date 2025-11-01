@@ -4,7 +4,7 @@ export async function getPageHTML(url: string): Promise<string> {
   if (!/^https?:\/\//i.test(url)) url = "https://" + url;
 
   const browser = await puppeteer.connect({
-    browserWSEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_API_KEY}`,
+    browserWSEndpoint: `wss://chrome.browserless.io?token=2TLCfXWWZ7oZbu027022e60d48f141b0a0e3996a1633f45d0`,
   });
 
   const page = await browser.newPage();

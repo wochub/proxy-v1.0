@@ -17,16 +17,18 @@ app.get("/browse", async (req, res) => {
 
     // Connect to Browserless.io instead of local Chrome
     const browser = await puppeteer.connect({
-      browserWSEndpoint: `wss://chrome.browserless.io?token=${process.env.BROWSERLESS_API_KEY}`,
+      browserWSEndpoint: `wss://chrome.browserless.io?token=2TLCfXWWZ7oZbu027022e60d48f141b0a0e3996a1633f45d0`,
     });
 
     const page = await browser.newPage();
 
     // Handle navigation timeout gracefully
-    await page.goto(url, { waitUntil: "domcontentloaded", timeout: 20000 }).catch(() => {
-      res.status(504).send("Page took too long to load.");
-      return;
-    });
+    await page
+      .goto(url, { waitUntil: "domcontentloaded", timeout: 20000 })
+      .catch(() => {
+        res.status(504).send("Page took too long to load.");
+        return;
+      });
 
     // If response already sent (timeout), skip the rest
     if (res.headersSent) return;
